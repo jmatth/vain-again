@@ -33,9 +33,9 @@ actually using it, read the code. :)
 
 All of this is [GPL3+](http://www.gnu.org/licenses/gpl-3.0.txt).
 
-Note: I'm using the 3.4 branch of Awesome. Thus, this module is likely
-to not work with the current git branch.
-
+[Here](http://www.uninformativ.de/projects/?q=awesome-vain) you can find a
+gallery. (German)
+ 
 
 Using it
 ========
