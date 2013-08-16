@@ -1,3 +1,28 @@
+===== 
+VAin agaIN
+===== 
+A feature rich module for Awesome WM 3.5+ 
+---------
+
+Foreword
+========
+While browsing GitHub one day, I came across this [splendid
+module](https://github.com/vain/awesome-vain).
+
+Unfortunately it was outdated and most likely incompatible with the current
+Awesome branch.
+
+*If you liked it that much, why don't you port it?* I thought.
+
+And that's it: **va**in aga**in**.
+
+For now, it's *just* a port with some hacks, but of course I'm planning
+to extend and improve it beyond belief!
+
+~~here follows the original readme~~
+
+---------
+
 This repository contains stuff I wrote for the [Awesome Window
 Manager](http://awesome.naquadah.org/). Essentially, it contains
 everything I use in my `rc.lua` that is not trivial: Widgets, layouts,
