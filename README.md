@@ -14,12 +14,12 @@ Awesome branch.
 
 *If you liked it that much, why don't you port it?* I thought.
 
-And that's it: **va**in aga**in**.
+And that's it!
 
 For now, it's *just* a port with some hacks, but of course I'm planning
 to extend and improve it beyond belief!
 
-~~here follows the original readme~~
+*~ here follows the original readme ~*
 
 ---------
 
