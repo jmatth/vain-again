@@ -33,10 +33,6 @@ actually using it, read the code. :)
 
 All of this is [GPL3+](http://www.gnu.org/licenses/gpl-3.0.txt).
 
-[Here](http://www.uninformativ.de/projects/?q=awesome-vain) you can find a
-gallery. (German)
- 
-
 Using it
 ========
 
