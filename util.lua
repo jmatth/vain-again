@@ -1,17 +1,17 @@
 -- Grab environment.
-local awful = awful
-local naughty = naughty
-local beautiful = beautiful
-local mouse = mouse
-local pairs = pairs
-local ipairs = ipairs
-local table = table
-local string = string
-local client = client
-local io = io
-local screen = screen
-local math = math
-local tonumber = tonumber
+local awful     = require("awful")
+local beautiful = require("beautiful")
+local naughty   = require("naughty")
+local io        = require("io")
+local table     = table
+local math      = math
+local mouse     = mouse
+local pairs     = pairs
+local ipairs    = ipairs
+local string    = string
+local client    = client
+local screen    = screen
+local tonumber  = tonumber
 
 module("vain.util")
 
@@ -130,12 +130,17 @@ end
 -- works for positive numbers.
 function paddivnum(num, padlen, declen)
     local rounded = string.format('%.' .. declen .. 'f', num)
-    local intpart, decpart = string.match(rounded, '([^.]+)\.(.*)')
-    intpart = string.rep('0', padlen - #intpart) .. intpart
-    intpart = string.reverse(intpart)
-    intpart = string.gsub(intpart, '(%d%d%d)', '%1,')
-    intpart = string.reverse(intpart)
-    intpart = string.gsub(intpart, '^,', '')
+    local intpart, decpart = string.match(rounded, '([^.]+)\\.(.*)')
+    if intpart ~= nil and decpart ~= nil then
+        intpart = string.rep('0', padlen - #intpart) .. intpart
+        intpart = string.reverse(intpart)
+        intpart = string.gsub(intpart, '(%d%d%d)', '%1,')
+        intpart = string.reverse(intpart)
+        intpart = string.gsub(intpart, '^,', '')
+    else
+        intpart = "0"
+        decpart = "0"
+    end
     return intpart .. '.' .. decpart
 end
 
@@ -223,7 +228,7 @@ function get_nice_value(pid)
 end
 
 -- To be used as a signal handler for "focus":
---    client.add_signal("focus", vain.util.niceborder_focus)
+--    client.connect_signal("focus", vain.util.niceborder_focus)
 -- This requires beautiful.border_focus{,_highprio,_lowprio}.
 function niceborder_focus(c)
     local n = get_nice_value(c.pid)
@@ -239,7 +244,7 @@ function niceborder_focus(c)
 end
 
 -- To be used as a signal handler for "unfocus":
---    client.add_signal("unfocus", vain.util.niceborder_unfocus)
+--    client.connect_signal("unfocus", vain.util.niceborder_unfocus)
 -- This requires beautiful.border_normal{,_highprio,_lowprio}.
 function niceborder_unfocus(c)
     local n = get_nice_value(c.pid)

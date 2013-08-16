@@ -1,5 +1,5 @@
 -- Grab environment.
-local awful = awful
+local awful = require("awful")
 
 module("vain.layout.cascade")
 
@@ -7,6 +7,7 @@ cascade_offset_x = 32
 cascade_offset_y = 8
 
 name = "cascade"
+
 function arrange(p)
 
     -- Cascade windows, just like the cascade layout for gimp.

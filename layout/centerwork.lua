@@ -1,8 +1,8 @@
 -- Grab environment.
-local tonumber = tonumber
-local beautiful = beautiful
-local awful = awful
-local math = math
+local awful     = require("awful")
+local beautiful = require("beautiful")
+local tonumber  = tonumber
+local math      = math
 
 module("vain.layout.centerwork")
 

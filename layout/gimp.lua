@@ -4,11 +4,11 @@
 
 
 -- Grab environment.
-local ipairs = ipairs
-local table = table
-local tonumber = tonumber
-local beautiful = beautiful
-local awful = awful
+local awful     = require("awful")
+local beautiful = require("beautiful")
+local ipairs    = ipairs
+local table     = table
+local tonumber  = tonumber
 
 module("vain.layout.gimp")
 

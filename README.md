@@ -448,6 +448,9 @@ windows are opened! Thus, I suggest you use
 	    -- ...
 	)
 
+--> If you do this, you might want to change Standard program section (modkey
+-> altkey) 
+
 Useless gaps
 ------------
 

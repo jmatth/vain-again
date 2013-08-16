@@ -1,23 +1,29 @@
 -- Grab environment.
-local awful = awful
-local widget = widget
-local timer = timer
-local string = string
-local beautiful = beautiful
-local image = image
-local io = io
-local math = math
-local os = os
-local pairs = pairs
-local tonumber = tonumber
-local vain = vain
-local type = type
-local capi = { wibox = wibox }
-local table = table
+local awful     = require("awful")
+local beautiful = require("beautiful")
+local io        = require("io")
+local os        = require("os")
+local wibox     = require("wibox")
+local util      = require("vain.util")
+local timer     = timer
+local string    = string
+local image     = image
+local math      = math
+local pairs     = pairs
+local tonumber  = tonumber
+local type      = type
+local capi      = { wibox = wibox }
+local table     = table
 
 module("vain.widgets")
 
-terminal = ''
+-- Global variables
+terminal       = "xterm"
+fg_focus       = beautiful.fg_focus or "#FFFFFF"
+fg_urgent      = beautiful.fg_urgent or "#FFFFFF"
+vain_dir       = os.getenv("HOME") .. "/.config/awesome/vain"
+icons_dir      = vain_dir .. "/themes/default/icons"
+control_volume = vain_dir .. "/scripts/control_volume"
 
 -- If vain.terminal is a string, e.g. "xterm", then "xterm -e " .. cmd is
 -- run. But if vain.terminal is a function, then terminal(cmd) is run.
@@ -37,7 +43,7 @@ function systemload(args)
     local refresh_timeout = args.refresh_timeout or 10
     local show_all = args.show_all or false
 
-    local mysysload = widget({ type = "textbox" })
+    local mysysload = wibox.widget.textbox()
     local mysysloadupdate = function()
         local f = io.open("/proc/loadavg")
         local ret = f:read("*all")
@@ -46,17 +52,17 @@ function systemload(args)
         if show_all
         then
             local a, b, c = string.match(ret, "([^%s]+) ([^%s]+) ([^%s]+)")
-            mysysload.text = string.format("%s %s %s", a, b, c)
+            mysysload:set_text(string.format("%s %s %s", a, b, c))
         else
             local a = string.match(ret, "([^%s]+) ")
-            mysysload.text = string.format("%s", a)
+            mysysload:set_text(string.format("%s", a))
         end
-        mysysload.text = ' <span color="' .. beautiful.fg_urgent .. '">'
-                         .. mysysload.text .. '</span> '
+        mysysload:set_markup(' <span color="' .. fg_urgent .. '">'
+                         .. mysysload._layout.text .. '</span> ')
     end
     mysysloadupdate()
     local mysysloadtimer = timer({ timeout = refresh_timeout })
-    mysysloadtimer:add_signal("timeout", mysysloadupdate)
+    mysysloadtimer:connect_signal("timeout", mysysloadupdate)
     mysysloadtimer:start()
     mysysload:buttons(awful.util.table.join(
         awful.button({}, 0,
@@ -73,13 +79,13 @@ function cpuusage(args)
     local args = args or {}
     local refresh_timeout = args.refresh_timeout or 10
 
-    local w = widget({ type = "textbox" })
+    local w = wibox.widget.textbox()
 
     local readcurrent = function()
         -- Read the amount of time the CPUs have spent performing
         -- different kinds of work. Read the first line of /proc/stat
         -- which is the sum of all CPUs.
-        local times = vain.util.first_line("/proc/stat")
+        local times = util.first_line("/proc/stat")
         local at = 1
         local idle = 0
         local total = 0
@@ -104,12 +110,12 @@ function cpuusage(args)
         local nowactive, nowtotal = readcurrent()
         local dactive = nowactive - cpuusage_lastactive
         local dtotal = nowtotal - cpuusage_lasttotal
-        w.text = ' cpu: '
-                 .. '<span color="' .. beautiful.fg_focus .. '">'
-                 .. string.format('%3s', math.ceil((dactive / dtotal) * 100))
-                 .. '%'
-                 .. '</span>'
-                 .. ' '
+        w:set_markup(' cpu: '
+                     .. '<span color="' .. fg_focus .. '">'
+                     .. string.format('%3s', math.ceil((dactive / dtotal) * 100))
+                     .. '%'
+                     .. '</span>'
+                     .. ' ')
 
         -- Save current data for the next run.
         cpuusage_lastactive = nowactive
@@ -121,7 +127,7 @@ function cpuusage(args)
 
     -- Set up timer, buttons and initial text.
     local cpuusagetimer = timer({ timeout = refresh_timeout })
-    cpuusagetimer:add_signal("timeout", cpuusageupdate)
+    cpuusagetimer:connect_signal("timeout", cpuusageupdate)
     cpuusagetimer:start()
     w:buttons(awful.util.table.join(
         awful.button({}, 0,
@@ -129,12 +135,11 @@ function cpuusage(args)
                 run_in_terminal('htop')
             end)
     ))
-    w.text = ' cpu: '
-             .. '<span color="' .. beautiful.fg_focus .. '">'
-             .. '  0%'
-             .. '</span>'
-             .. ' '
-
+    w:set_markup(' cpu: '
+                 .. '<span color="' .. fg_focus .. '">'
+                 .. '  0%'
+                 .. '</span>'
+                 .. ' ')
     return w
 end
 
@@ -144,7 +149,8 @@ function memusage(args)
     local refresh_timeout = args.refresh_timeout or 10
     local show_swap = args.show_swap or false
 
-    local widg = widget({ type = "textbox" })
+    local widg = wibox.widget.textbox()
+
     local upd = function()
         -- Get MEM info. Base code borrowed from Vicious.
         -- Note to self: Numbers in meminfo are KiB although it says kB.
@@ -168,19 +174,19 @@ function memusage(args)
         used = mem.total - (mem.free + mem.buf + mem.cache)
         swapused = mem.swap - mem.swapf
         fmt = "%" .. string.len(mem.total) .. ".0f/%.0f MB"
-        widg.text = ' <span color="' .. beautiful.fg_urgent .. '">'
-                    .. string.format(fmt, used, mem.total) .. '</span> '
+        widg:set_markup(' <span color="' .. fg_urgent .. '">'
+                         .. string.format(fmt, used, mem.total) .. '</span> ')
 
         if show_swap
         then
-            widg.text = widg.text .. '('
-                        .. string.format('%.0f MB', swapused)
-                        .. ') '
+            widg:set_markup(widg._layout.text .. '('
+                            .. string.format('%.0f MB', swapused)
+                            .. ') ')
         end
     end
     upd()
     local tmr = timer({ timeout = refresh_timeout })
-    tmr:add_signal("timeout", upd)
+    tmr:connect_signal("timeout", upd)
     tmr:start()
     widg:buttons(awful.util.table.join(
         awful.button({}, 0,
@@ -194,11 +200,12 @@ end
 -- Maildir check
 function mailcheck(args)
     local args = args or {}
+    -- better setting it by beautiful
     local mailpath = args.mailpath or os.getenv("HOME") .. "/Mail"
     local ignore_boxes = args.ignore_boxes or {}
     local refresh_timeout = args.refresh_timeout or 30
 
-    local mymailcheck = widget({ type = "textbox" })
+    local mymailcheck = wibox.widget.textbox()
     local mymailcheckupdate = function()
         -- Find pathes to mailboxes.
         local p = io.popen("find " .. mailpath ..
@@ -236,7 +243,7 @@ function mailcheck(args)
         for box, number in pairs(boxes)
         do
             -- Add this box only if it's not to be ignored.
-            if not vain.util.element_in_table(box, ignore_boxes)
+            if not util.element_in_table(box, ignore_boxes)
             then
                 if newmail == ""
                 then
@@ -250,21 +257,21 @@ function mailcheck(args)
 
         if newmail == ""
         then
-            mymailcheck.text = " no mail "
+            mymailcheck:set_text(' no mail ')
         else
-            mymailcheck.text = ' <span color="'
-                               .. (beautiful.mailcheck_new or "#FF0000")
-                               .. '">mail: ' .. newmail .. '</span> '
+            mymailcheck:set_markup(' <span color="'
+                                     .. (beautiful.mailcheck_new or "#FF0000")
+                                     .. '">mail: ' .. newmail .. '</span> ')
         end
     end
     if args.initial_update == nil or args.initial_update
     then
         mymailcheckupdate()
     else
-        mymailcheck.text = " no mail "
+        mymailcheck:set_text(' no mail ')
     end
     local mymailchecktimer = timer({ timeout = refresh_timeout })
-    mymailchecktimer:add_signal("timeout", mymailcheckupdate)
+    mymailchecktimer:connect_signal("timeout", mymailcheckupdate)
     mymailchecktimer:start()
     mymailcheck:buttons(awful.util.table.join(
         awful.button({}, 0,
@@ -281,10 +288,10 @@ function battery(args)
     local bat = args.battery or "BAT0"
     local refresh_timeout = args.refresh_timeout or 30
 
-    local mybattery = widget({ type = "textbox" })
+    local mybattery = wibox.widget.textbox()
     local mybatteryupdate = function()
 
-        local first_line = vain.util.first_line
+        local first_line = util.first_line
         local present = first_line("/sys/class/power_supply/" .. bat ..
                                    "/present")
         if present == "1"
@@ -326,12 +333,12 @@ function battery(args)
             text = "no battery"
         end
 
-        mybattery.text = ' <span color="' .. beautiful.fg_urgent .. '">'
-                         .. text .. '</span> '
+        mybattery:set_markup(' <span color="' .. fg_urgent .. '">'
+                             .. text .. '</span> ')
     end
     mybatteryupdate()
     local mybatterytimer = timer({ timeout = refresh_timeout })
-    mybatterytimer:add_signal("timeout", mybatteryupdate)
+    mybatterytimer:connect_signal("timeout", mybatteryupdate)
     mybatterytimer:start()
     return mybattery
 end
@@ -342,10 +349,10 @@ function volume(args)
     local mixer_channel = args.mixer_channel or "Master"
     local refresh_timeout = args.refresh_timeout or 2
 
-    local myvolume = widget({ type = "textbox" })
+    local myvolume = wibox.widget.textbox()
     local myvolumeupdate = function()
         -- Mostly copied from vicious.
-        local f = io.popen("control_volume get " .. mixer_channel)
+        local f = io.popen(control_volume .. ' get ' .. mixer_channel)
         local mixer = f:read("*all")
         f:close()
 
@@ -367,17 +374,17 @@ function volume(args)
         end
 
         local ret = string.format("%03d%% %s", volu, mute)
-        myvolume.text = ' <span color="' .. beautiful.fg_urgent .. '">'
-            .. ret .. '</span> '
+        myvolume:set_markup(' <span color="' .. fg_urgent .. '">'
+                            .. ret .. '</span> ')
     end
     myvolumeupdate()
     local myvolumetimer = timer({ timeout = refresh_timeout })
-    myvolumetimer:add_signal("timeout", myvolumeupdate)
+    myvolumetimer:connect_signal("timeout", myvolumeupdate)
     myvolumetimer:start()
     myvolume:buttons(awful.util.table.join(
         awful.button({}, 1,
             function()
-                awful.util.spawn('control_volume toggle ' .. mixer_channel)
+                os.execute(control_volume .. ' toggle ' .. mixer_channel)
              end),
 
         awful.button({}, 2,
@@ -387,34 +394,35 @@ function volume(args)
 
         awful.button({}, 3,
             function()
-                awful.util.spawn('control_volume toggle ' .. mixer_channel)
+                os.execute(control_volume .. ' toggle ' .. mixer_channel)
             end),
 
         awful.button({}, 4,
             function()
-                awful.util.spawn('control_volume up ' .. mixer_channel)
+                os.execute(control_volume .. ' up ' ..  mixer_channel)
             end),
 
         awful.button({}, 5,
             function()
-                awful.util.spawn('control_volume down ' .. mixer_channel)
+                os.execute(control_volume .. ' down ' .. mixer_channel)
             end)
     ))
     return myvolume
 end
 
 -- MPD
+-- TODO: unify the array in a 'single box' widget
 function mpd(args)
     local args = args or {}
     local mixer_channel = args.mixer_channel or "Master"
 
     local mpdtable = {
-        widget({ type = "textbox" }),
-        widget({ type = "imagebox" }),
-        widget({ type = "imagebox" }),
-        widget({ type = "imagebox" }),
-        widget({ type = "imagebox" }),
-        widget({ type = "textbox" })
+        wibox.widget.textbox(),
+        wibox.widget.imagebox(),
+        wibox.widget.imagebox(),
+        wibox.widget.imagebox(),
+        wibox.widget.imagebox(),
+        wibox.widget.textbox()
     }
 
     if args.show_label == nil or args.show_label
@@ -424,16 +432,12 @@ function mpd(args)
         mpdtable[1].text = " "
     end
 
-    mpdtable[2].image = image("/usr/share/icons/Tango/32x32/actions/" ..
-                              "player_rew.png")
-    mpdtable[3].image = image("/usr/share/icons/Tango/32x32/actions/" ..
-                              "player_stop.png")
-    mpdtable[4].image = image("/usr/share/icons/Tango/32x32/actions/" ..
-                              "player_play.png")
-    mpdtable[5].image = image("/usr/share/icons/Tango/32x32/actions/" ..
-                              "player_fwd.png")
-
-    mpdtable[6].text = " "
+    -- TODO: add beautiful defined icons option 
+    mpdtable[2]:set_image(icons_dir .. "/rwd.png")
+    mpdtable[2]:set_image(icons_dir .. "/stop.png")
+    mpdtable[2]:set_image(icons_dir .. "/play.png")
+    mpdtable[2]:set_image(icons_dir .. "/fwd.png")
+    mpdtable[6]:set_text(" ")
 
     local function buttons_for_mpdwidget(widg, cmd)
         widg:buttons(awful.util.table.join(
@@ -445,22 +449,19 @@ function mpd(args)
                 end),
 
             awful.button({}, 3,
-                function()
-                    awful.util.spawn('control_volume toggle '
-                                     .. mixer_channel)
-                end),
+               function()
+                    os.execute(control_volume .. ' toggle ' .. mixer_channel)
+               end),
 
             awful.button({}, 4,
-                function()
-                    awful.util.spawn('control_volume up '
-                                     .. mixer_channel)
-                end),
+               function()
+                   os.execute(control_volume .. ' up ' ..  mixer_channel)
+               end),
 
             awful.button({}, 5,
-                function()
-                    awful.util.spawn('control_volume down '
-                                     .. mixer_channel)
-                end)
+               function()
+                   os.execute(control_volume .. ' down ' .. mixer_channel)
+               end)
         ))
     end
     buttons_for_mpdwidget(mpdtable[2], 'mpc prev')
@@ -479,19 +480,19 @@ function net(args)
     local iface = args.iface or "eth0"
     local delta = args.refresh_timeout or 2
 
-    local mynet = widget({ type = "textbox" })
+    local mynet = wibox.widget.textbox()
     local mynetupdate = function()
-        local state = vain.util.first_line('/sys/class/net/' .. iface ..
+        local state = util.first_line('/sys/class/net/' .. iface ..
                                            '/operstate')
-        local now_t = vain.util.first_line('/sys/class/net/' .. iface ..
+        local now_t = util.first_line('/sys/class/net/' .. iface ..
                                            '/statistics/tx_bytes')
-        local now_r = vain.util.first_line('/sys/class/net/' .. iface ..
+        local now_r = util.first_line('/sys/class/net/' .. iface ..
                                            '/statistics/rx_bytes')
         local text = iface .. ': '
 
         if state == 'down' or not now_t or not now_r
         then
-            mynet.text = ' ' .. text .. '-' .. ' '
+            mynet:set_text(' ' .. text .. '-' .. ' ')
             return
         end
 
@@ -499,9 +500,9 @@ function net(args)
         then
             local val = ((now_t - net_last_t[iface]) / delta / 1e3)
             text = text
-                   .. '<span color="' .. beautiful.fg_focus .. '">'
+                   .. '<span color="' .. fg_focus .. '">'
                    .. '↑('
-                   .. vain.util.paddivnum(val, 5, 1)
+                   .. util.paddivnum(val, 5, 1)
                    .. ')'
                    .. '</span>'
 
@@ -509,15 +510,15 @@ function net(args)
 
             val = ((now_r - net_last_r[iface]) / delta / 1e3)
             text = text
-                   .. '<span color="' .. beautiful.fg_urgent .. '">'
+                   .. '<span color="' .. fg_urgent .. '">'
                    .. '↓('
-                   .. vain.util.paddivnum(val, 5, 1)
+                   .. util.paddivnum(val, 5, 1)
                    .. ')'
                    .. '</span>'
 
-            mynet.text = ' ' .. text .. ' '
+            mynet:set_markup(' ' .. text .. ' ')
         else
-            mynet.text = ' ' .. text .. '-' .. ' '
+            mynet:set_markup(' ' .. text .. '-' .. ' ')
         end
 
         net_last_t[iface] = now_t
@@ -525,7 +526,7 @@ function net(args)
     end
     mynetupdate()
     local mynettimer = timer({ timeout = delta })
-    mynettimer:add_signal("timeout", mynetupdate)
+    mynettimer:connect_signal("timeout", mynetupdate)
     mynettimer:start()
     return mynet
 end
@@ -537,7 +538,7 @@ end
 -- with gitodo.
 function gitodo(args)
     local args = args or {}
-    local widg = widget({ type = "textbox" })
+    local widg = wibox.widget.textbox()
     local refresh_timeout = args.refresh_timeout or 120
 
     local mytodoupdate = function()
@@ -549,6 +550,13 @@ function gitodo(args)
                                                     "(%d+) (%d+) (%d+)")
 
         local msg = ' todo: '
+
+        -- Let's avoid to crash in any case
+        if outdated == nil or warning == nil or all == nil
+        then
+            widg:set_text('nil')
+            return widg
+        end
 
         if tonumber(outdated) > 0
         then
@@ -562,28 +570,28 @@ function gitodo(args)
         if tonumber(warning) > 0
         then
             msg = msg .. '<span color="'
-                      .. (beautiful.gitodo_warning or beautiful.fg_urgent)
+                      .. (beautiful.gitodo_warning or fg_urgent)
                       .. '">'
                       .. warning
                       .. '</span>, '
         end
 
         msg = msg .. '<span color="'
-                  .. (beautiful.gitodo_normal or beautiful.fg_urgent)
+                  .. (beautiful.gitodo_normal or fg_urgent)
                   .. '">'
                   .. all
                   .. '</span> '
 
-        widg.text = msg
+        widg:set_markup(msg)
     end
     if args.initial_update == nil or args.initial_update
     then
         mytodoupdate()
     else
-        widg.text = ' todo: - '
+        widg:set_text(' todo: - ')
     end
     local todotimer = timer({ timeout = refresh_timeout })
-    todotimer:add_signal("timeout", mytodoupdate)
+    todotimer:connect_signal("timeout", mytodoupdate)
     todotimer:start()
 
     widg:buttons(awful.util.table.join(

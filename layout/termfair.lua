@@ -1,12 +1,13 @@
 -- Grab environment.
-local math = math
-local tonumber = tonumber
-local beautiful = beautiful
-local awful = awful
+local tag       = require("awful.tag")
+local beautiful = require("beautiful")
+local math      = math
+local tonumber  = tonumber
 
 module("vain.layout.termfair")
 
 name = "termfair"
+
 function arrange(p)
 
     -- Layout with fixed number of vertical columns (read from nmaster).
@@ -28,7 +29,7 @@ function arrange(p)
     --   +---+---+---+      +---+---+---+      +---+---+---+
 
     -- A useless gap (like the dwm patch) can be defined with
-    -- beautiful.useless_gap_width .
+    -- beautiful.useless_gap_width.
     local useless_gap = tonumber(beautiful.useless_gap_width)
     if useless_gap == nil
     then
@@ -40,14 +41,14 @@ function arrange(p)
     local cls = p.clients
 
     -- How many vertical columns? Read from nmaster on the tag.
-    local t = awful.tag.selected(p.screen)
-    local num_x = awful.tag.getnmaster(t)
+    local t = tag.selected(p.screen)
+    local num_x = tag.getnmaster(t)
 
     -- Do at least "desired_y" rows. Read this from ncol. (Yes, I use a
     -- *column* setting to set the number of *rows*. That's because
     -- num_x is the *master* setting -- it's the setting that's most
     -- important to me.)
-    local desired_y = awful.tag.getncol(t)
+    local desired_y = tag.getncol(t)
 
     if #cls > 0
     then

@@ -6,12 +6,11 @@
 ---------------------------------------------------------------------------
 
 -- Grab environment we need
-local ipairs = ipairs
-local math = math
-local beautiful = beautiful
-local tonumber = tonumber
+local beautiful = require("beautiful")
+local ipairs    = ipairs
+local math      = math
+local tonumber  = tonumber
 
---- Fair layouts module for awful / vain
 module("vain.layout.uselessfair")
 
 local function fair(p, orientation)
