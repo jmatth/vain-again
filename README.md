@@ -1,23 +1,9 @@
-===== 
-VAin agaIN
-===== 
-A feature rich module for Awesome WM 3.5+ 
----------
+This is a port of [awesome-vain](https://github.com/vain/awesome-vain) to [Awesome](http://awesome.naquadah.org) 3.5+.
 
-Foreword
-========
-While browsing GitHub one day, I came across this [splendid
-module](https://github.com/vain/awesome-vain).
+I started hacking this too much that it became something else.
 
-Unfortunately it was outdated and most likely incompatible with the current
-Awesome branch.
-
-*If you liked it that much, why don't you port it?* I thought.
-
-And that's it!
-
-For now, it's *just* a port with some hacks, but of course I'm planning
-to extend and improve it beyond belief!
+So I decided to undo the commits for keeping the original module, in
+respect of the great work of his creator, and to create a [separate one](https://github.com/copycat-killer/lain) for my own stuff.
 
 *~ here follows the original readme ~*
 
