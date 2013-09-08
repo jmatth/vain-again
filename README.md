@@ -19,6 +19,11 @@ actually using it, read the code. :)
 
 All of this is [GPL3+](http://www.gnu.org/licenses/gpl-3.0.txt).
 
+Installation
+============
+
+    git clone https://github.com/copycat-killer/awesome-vain.git ~/.config/awesome/vain
+
 Using it
 ========
 
