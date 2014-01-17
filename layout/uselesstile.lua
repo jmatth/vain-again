@@ -7,10 +7,11 @@
 ---------------------------------------------------------------------------
 
 -- Grab environment we need
-local tag = require("awful.tag")
+local tag       = require("awful.tag")
 local beautiful = require("beautiful")
-local ipairs = ipairs
-local math = math
+local ipairs    = ipairs
+local math      = math
+local tonumber  = tonumber
 
 module("vain.layout.uselesstile")
 
