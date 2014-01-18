@@ -1,19 +1,18 @@
 ---------------------------------------------------------------------------
--- @author Julien Danjou &lt;julien@danjou.info&gt;
--- @copyright 2008 Julien Danjou
--- @copyright 2010 Vain
--- @release v3.4.6
+-- @author Josh Komoroske
+-- @copyright 2012 Josh Komoroske
+-- @release v3.5.2
 ---------------------------------------------------------------------------
 
 -- Grab environment we need
-local beautiful = require("beautiful")
 local ipairs    = ipairs
 local math      = math
+local beautiful = require("beautiful")
 local tonumber  = tonumber
 
 module("vain.layout.uselessfair")
 
-local function fair(p, orientation)
+local function do_fair(p, orientation)
     -- A useless gap (like the dwm patch) can be defined with
     -- beautiful.useless_gap_width .
     local useless_gap = tonumber(beautiful.useless_gap_width)
@@ -26,46 +25,63 @@ local function fair(p, orientation)
     local wa = p.workarea
     local cls = p.clients
 
+    -- Swap workarea dimensions, if our orientation is "east"
+    if orientation == 'east' then
+        wa.width, wa.height = wa.height, wa.width
+        wa.x, wa.y = wa.y, wa.x
+    end
+
     if #cls > 0 then
-        local cells = math.ceil(math.sqrt(#cls))
-        local strips = math.ceil(#cls / cells)
+        local rows, cols = 0, 0
+        if #cls == 2 then
+            rows, cols = 1, 2
+        else
+            rows = math.ceil(math.sqrt(#cls))
+            cols = math.ceil(#cls / rows)
+        end
 
-        local cell = 0
-        local strip = 0
         for k, c in ipairs(cls) do
+            k = k - 1
             local g = {}
-            -- Save actual grid index for use in the useless_gap
-            -- routine.
-            local this_x = 0
-            local this_y = 0
-            if ( orientation == "east" and #cls > 2 )
-            or ( orientation == "south" and #cls <= 2 ) then
-                if #cls < (strips * cells) and strip == strips - 1 then
-                    g.width = wa.width / (cells - ((strips * cells) - #cls))
-                else
-                    g.width = wa.width / cells
-                end
-                g.height = wa.height / strips
 
-                this_x = cell
-                this_y = strip
+            local row, col = 0, 0
+            row = k % rows
+            col = math.floor(k / rows)
 
-                g.x = wa.x + cell * g.width
-                g.y = wa.y + strip * g.height
-
+            local lrows, lcols = 0, 0
+            if k >= rows * cols - rows then
+                lrows = #cls - (rows * cols - rows)
+                lcols = cols
             else
-                if #cls < (strips * cells) and strip == strips - 1 then
-                    g.height = wa.height / (cells - ((strips * cells) - #cls))
-                else
-                    g.height = wa.height / cells
-                end
-                g.width = wa.width / strips
+                lrows = rows
+                lcols = cols
+            end
 
-                this_x = strip
-                this_y = cell
+            if row == lrows - 1 then
+                g.height = wa.height - math.ceil(wa.height / lrows) * row
+                g.y = wa.height - g.height
+            else
+                g.height = math.ceil(wa.height / lrows)
+                g.y = g.height * row
+            end
 
-                g.x = wa.x + strip * g.width
-                g.y = wa.y + cell * g.height
+            if col == lcols - 1 then
+                g.width = wa.width - math.ceil(wa.width / lcols) * col
+                g.x = wa.width - g.width
+            else
+                g.width = math.ceil(wa.width / lcols)
+                g.x = g.width * col
+            end
+
+            g.height = g.height - c.border_width * 2
+            g.width = g.width - c.border_width * 2
+            g.y = g.y + wa.y
+            g.x = g.x + wa.x
+
+            -- Swap window dimensions, if our orientation is "east"
+            if orientation == 'east' then
+                g.width, g.height = g.height, g.width
+                g.x, g.y = g.y, g.x
             end
 
             -- Useless gap.
@@ -74,7 +90,19 @@ local function fair(p, orientation)
                 -- Top and left clients are shrinked by two steps and
                 -- get moved away from the border. Other clients just
                 -- get shrinked in one direction.
-                if this_x == 0
+                local top = false
+                local left = false
+
+                if row == 0
+                then
+                    top = true
+                end
+                if col == 0
+                then
+                    left = true
+                end
+
+                if left
                 then
                     g.width = g.width - 2 * useless_gap
                     g.x = g.x + useless_gap
@@ -82,7 +110,7 @@ local function fair(p, orientation)
                     g.width = g.width - useless_gap
                 end
 
-                if this_y == 0
+                if top
                 then
                     g.height = g.height - 2 * useless_gap
                     g.y = g.y + useless_gap
@@ -93,12 +121,6 @@ local function fair(p, orientation)
             -- End of useless gap.
 
             c:geometry(g)
-
-            cell = cell + 1
-            if cell == cells then
-                cell = 0
-                strip = strip + 1
-            end
         end
     end
 end
@@ -108,12 +130,12 @@ end
 horizontal = {}
 horizontal.name = "fairh"
 function horizontal.arrange(p)
-    return fair(p, "east")
+    return do_fair(p, "east")
 end
 
 -- Vertical fair layout.
 -- @param screen The screen to arrange.
 name = "fairv"
 function arrange(p)
-    return fair(p, "south")
+    return do_fair(p, "south")
 end
