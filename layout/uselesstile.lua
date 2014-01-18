@@ -1,16 +1,16 @@
 ---------------------------------------------------------------------------
--- @author Donald Ephraim Curtis <dcurtis@cs.uiowa.edu>
--- @author Julien Danjou <julien@danjou.info>
+-- @author Donald Ephraim Curtis &lt;dcurtis@cs.uiowa.edu&gt;
+-- @author Julien Danjou &lt;julien@danjou.info&gt;
 -- @copyright 2009 Donald Ephraim Curtis
 -- @copyright 2008 Julien Danjou
--- @release v3.4.11
+-- @release v3.5.2
 ---------------------------------------------------------------------------
 
 -- Grab environment we need
-local tag       = require("awful.tag")
-local beautiful = require("beautiful")
 local ipairs    = ipairs
 local math      = math
+local tag       = require("awful.tag")
+local beautiful = require("beautiful")
 local tonumber  = tonumber
 
 module("vain.layout.uselesstile")
@@ -37,7 +37,7 @@ local function tile_group(cls, wa, orientation, fact, group)
     end
 
     -- make this more generic (not just width)
-    available = wa[width] - (group.coord - wa[x])
+    local available = wa[width] - (group.coord - wa[x])
 
     -- find our total values
     local total_fact = 0
@@ -65,19 +65,17 @@ local function tile_group(cls, wa, orientation, fact, group)
     local geom = {}
     local used_size = 0
     local unused = wa[height]
-    local stat_coord = wa[x]
-    --stat_coord = size
     for c = group.first,group.last do
         local i = c - group.first +1
-        geom[width] = size
-        geom[height] = math.floor(unused * fact[i] / total_fact)
+        geom[width] = size - cls[c].border_width * 2
+        geom[height] = math.floor(unused * fact[i] / total_fact) - cls[c].border_width * 2
         geom[x] = group.coord
         geom[y] = coord
 
-        coord = coord + geom[height]
-        unused = unused - geom[height]
+        coord = coord + geom[height] + cls[c].border_width * 2
+        unused = unused - geom[height] - cls[c].border_width * 2
         total_fact = total_fact - fact[i]
-        used_size = math.max(used_size, geom[width])
+        used_size = math.max(used_size, geom[width] + cls[c].border_width * 2)
 
         -- Useless gap
         if useless_gap > 0
@@ -114,12 +112,12 @@ local function tile_group(cls, wa, orientation, fact, group)
         -- End of useless gap.
 
         geom = cls[c]:geometry(geom)
-   end
+    end
 
     return used_size
 end
 
-local function tile(param, orientation)
+local function do_tile(param, orientation)
     local t = tag.selected(param.screen)
     orientation = orientation or "right"
 
@@ -197,14 +195,14 @@ end
 
 right = {}
 right.name = "uselesstile"
-right.arrange = tile
+right.arrange = do_tile
 
 --- The main tile algo, on left.
 -- @param screen The screen number to tile.
 left = {}
 left.name = "uselesstileleft"
 function left.arrange(p)
-    return tile(p, "left")
+    return do_tile(p, "left")
 end
 
 --- The main tile algo, on bottom.
@@ -212,7 +210,7 @@ end
 bottom = {}
 bottom.name = "uselesstilebottom"
 function bottom.arrange(p)
-    return tile(p, "bottom")
+    return do_tile(p, "bottom")
 end
 
 --- The main tile algo, on top.
@@ -220,7 +218,7 @@ end
 top = {}
 top.name = "uselesstiletop"
 function top.arrange(p)
-    return tile(p, "top")
+    return do_tile(p, "top")
 end
 
 arrange = right.arrange
