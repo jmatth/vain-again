@@ -194,13 +194,13 @@ local function do_tile(param, orientation)
 end
 
 right = {}
-right.name = "uselesstile"
+right.name = "tile"
 right.arrange = do_tile
 
 --- The main tile algo, on left.
 -- @param screen The screen number to tile.
 left = {}
-left.name = "uselesstileleft"
+left.name = "tileleft"
 function left.arrange(p)
     return do_tile(p, "left")
 end
@@ -208,7 +208,7 @@ end
 --- The main tile algo, on bottom.
 -- @param screen The screen number to tile.
 bottom = {}
-bottom.name = "uselesstilebottom"
+bottom.name = "tilebottom"
 function bottom.arrange(p)
     return do_tile(p, "bottom")
 end
@@ -216,7 +216,7 @@ end
 --- The main tile algo, on top.
 -- @param screen The screen number to tile.
 top = {}
-top.name = "uselesstiletop"
+top.name = "tiletop"
 function top.arrange(p)
     return do_tile(p, "top")
 end
