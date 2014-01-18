@@ -85,7 +85,7 @@ local function do_fair(p, orientation)
             end
 
             -- Useless gap.
-            if useless_gap > 0
+            if useless_gap > 0 and #cls > 1
             then
                 -- Top and left clients are shrinked by two steps and
                 -- get moved away from the border. Other clients just
