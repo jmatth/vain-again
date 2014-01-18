@@ -78,7 +78,7 @@ local function tile_group(cls, wa, orientation, fact, group)
         used_size = math.max(used_size, geom[width] + cls[c].border_width * 2)
 
         -- Useless gap
-        if useless_gap > 0
+        if useless_gap > 0 and #cls > 1
         then
             -- Top and left clients are shrinked by two steps and
             -- get moved away from the border. Other clients just
