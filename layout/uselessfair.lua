@@ -101,6 +101,9 @@ local function do_fair(p, orientation)
                 then
                     left = true
                 end
+                if orientation == 'east' then
+                    top, left = left, top
+                end
 
                 if left
                 then
